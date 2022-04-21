@@ -21,7 +21,7 @@ $ npm i (in both folders)
 
 API Terminal:
 ```bash
-$ node app.js
+$ npm start
 ``` 
 Frontend:
 ```bash
