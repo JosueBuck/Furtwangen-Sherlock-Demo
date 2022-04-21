@@ -1,23 +1,32 @@
 const express = require("express");
-var cors = require('cors');
-var functions = require("./functions");
+var cors = require("cors");
+const functions = require("./functions");
+const db = require("./database/database");
 
 const app = express();
 const port = 3000;
 
-app.use(cors({
-  origin: 'http://127.0.0.1:5500'
-}));
+app.use(
+  cors({
+    origin: "http://127.0.0.1:5500",
+  })
+);
 
 app.listen(port, async () => {
   console.log(`Server is listening on port ${port}`);
 });
 
+/* 
+  GET Barear Tokens
+*/
 app.get("/getTokens", async (req, res) => {
   const tokens = await functions.getTokens();
   res.send(tokens);
 });
 
+/* 
+  GET Available Collections
+*/
 app.get("/getAvailableCollections", async (req, res) => {
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
@@ -29,8 +38,10 @@ app.get("/getAvailableCollections", async (req, res) => {
   res.send(availableCollections);
 });
 
+/* 
+  GET Collection Schema
+*/
 app.get("/getCollectionSchema/:collectionName", async (req, res) => {
-
   const collectionName = req.params.collectionName;
 
   const tokens = await functions.getTokens();
@@ -42,4 +53,28 @@ app.get("/getCollectionSchema/:collectionName", async (req, res) => {
   );
 
   res.send(collectionSchema);
+});
+
+/* 
+  GET All Bikes
+*/
+app.get("/getAllBikes", async (req, res) => {
+  const bikes = await db.getAllDataFromTable("Fahrrad");
+  res.send(bikes);
+});
+
+/* 
+  GET All Contracts
+*/
+app.get("/getAllContracts", async (req, res) => {
+  const bikes = await db.getAllDataFromTable("Auftrag");
+  res.send(bikes);
+});
+
+/* 
+  GET All Customers
+*/
+app.get("/getAllCustomers", async (req, res) => {
+  const bikes = await db.getAllDataFromTable("Kunde");
+  res.send(bikes);
 });
