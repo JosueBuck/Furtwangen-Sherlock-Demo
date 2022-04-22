@@ -9,6 +9,46 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASIC_URL = `https://${DEMO_NAME}.sherlock-cloud.de`;
 
+
+/* 
+  <<Body Handler>>
+
+  Axios converts everything for the body to json automatically.
+  This functions allows to change the format of the body.
+*/
+function handleBody(_data, _isUrlEncoded) {
+  if (_isUrlEncoded) {
+    return qs.stringify(_data);
+  } else {
+    return _data;
+  }
+}
+
+async function useApi(_method, _url, _headers, _data, _isUrlEncoded) {
+  const response = await axios({
+    method: _method,
+    headers: _headers,
+    url: `${BASIC_URL}${_url}`,
+    data: handleBody(_data, _isUrlEncoded)
+  })
+    .then(function (response) {
+      return response.data;
+    })
+    .catch(function (error) {
+      if (error.response) {
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log(error.response.headers);
+      } else if (error.request) {
+        console.log(error.request);
+      } else {
+        console.log('Error', error.message);
+      }
+    });
+
+  return response;
+}
+
 async function getTokens() {
   const headers = { "content-type": "application/x-www-form-urlencoded" };
 
@@ -20,7 +60,7 @@ async function getTokens() {
 
   const url = "/auth/realms/Sherlock/protocol/openid-connect/token";
 
-  const tokens = await useApi("post", url, headers, data);
+  const tokens = await useApi("post", url, headers, data, true);
   return tokens;
 }
 
@@ -46,33 +86,25 @@ async function getCollectionSchema(_accessToken, _collectionName) {
   return availableCollections;
 }
 
-async function useApi(_method, _url, _headers, _data) {
-  const response = await axios({
-    method: _method,
-    headers: _headers,
-    url: `${BASIC_URL}${_url}`,
-    data: qs.stringify(_data),
-  })
-    .then(function (response) {
-      return response.data;
-    })
-    .catch(function (error) {
-      if (error.response) {
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
-      } else if (error.request) {
-        console.log(error.request);
-      } else {
-        console.log('Error', error.message);
-      }
-    });
+async function getSpecificData(_accessToken, _collectionName, _body) {
+  const headers = { 
+    Authorization: `Bearer ${_accessToken}` ,
+    "content-type": "application/json"
+  };
 
-  return response;
+  const data = _body;
+
+  const url = `/def-api/search/${_collectionName}`;
+
+  const specificData = await useApi("post", url, headers, data)
+  return specificData;
 }
+
+
 
 module.exports = {
   getTokens,
   getAvailableCollections,
-  getCollectionSchema
+  getCollectionSchema,
+  getSpecificData
 };
