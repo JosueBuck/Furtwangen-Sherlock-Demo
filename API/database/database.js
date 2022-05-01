@@ -26,8 +26,29 @@ async function getAllDataFromTable(_tableName) {
   }
 }
 
+async function getBikeFilterOptions() {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const brands = await connection.query(`SELECT distinct Marke FROM Fahrrad`);
+    const categories = await connection.query(`SELECT distinct Kategorie FROM Fahrrad`);
+    const colors = await connection.query(`SELECT distinct Farbe FROM Fahrrad`);
+    const filterOptions = {
+      brands, categories, colors
+    }
+    return filterOptions;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 
 
 module.exports = {
-  getAllDataFromTable
+  getAllDataFromTable,
+  getBikeFilterOptions
 };

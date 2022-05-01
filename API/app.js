@@ -71,7 +71,11 @@ app.post("/getSpecificData/:collectionName", async (req, res) => {
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
 
-  const specificData = await functions.getSpecificData(accessToken, collectionName, body);
+  const specificData = await functions.getSpecificData(
+    accessToken,
+    collectionName,
+    body
+  );
 
   res.send(specificData);
 });
@@ -88,6 +92,14 @@ app.post("/getSpecificData/:collectionName", async (req, res) => {
 app.get("/getAllBikes", async (req, res) => {
   const bikes = await db.getAllDataFromTable("Fahrrad");
   res.send(bikes);
+});
+
+/* 
+  GET Bike Filter Options
+*/
+app.get("/getBikeFilterOptions", async (req, res) => {
+  const filterOptions = await db.getBikeFilterOptions();
+  res.send(filterOptions);
 });
 
 /* 
