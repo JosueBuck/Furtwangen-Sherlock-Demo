@@ -46,9 +46,25 @@ async function getBikeFilterOptions() {
   }
 }
 
+async function getBikeById(_id) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const bike = await connection.query(`SELECT * FROM Fahrrad WHERE Fahrrad_ID='${_id}'`);
+    return bike;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 
 
 module.exports = {
   getAllDataFromTable,
-  getBikeFilterOptions
+  getBikeFilterOptions,
+  getBikeById
 };

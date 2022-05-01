@@ -103,6 +103,15 @@ app.get("/getBikeFilterOptions", async (req, res) => {
 });
 
 /* 
+  GET Bike By ID
+*/
+app.get("/getBikeById/:id", async (req, res) => {
+  const bikeId = req.params.id;
+  const bike = await db.getBikeById(bikeId);
+  res.send(bike);
+});
+
+/* 
   GET All Contracts
 */
 app.get("/getAllContracts", async (req, res) => {
