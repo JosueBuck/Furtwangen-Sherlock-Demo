@@ -87,16 +87,18 @@ async function getBikesByFilterOptions(_filterOptions) {
   }
 }
 function createFilterOptionSQL(brands, categories, colors) {
-  let sql = `SELECT * FROM Fahrrad WHERE `;
+  let sql = `SELECT * FROM Fahrrad `;
   let filterOptionWasAdded = false;
 
   if (brands != "") {
-    sql += `Marke IN (${brands})`;
+    sql += `WHERE Marke IN (${brands})`;
     filterOptionWasAdded = true;
   }
   if (categories != "") {
     if(filterOptionWasAdded) {
       sql += " AND "
+    } else {
+      sql += "WHERE "
     }
     filterOptionWasAdded = true;
     sql += `Kategorie IN (${categories})`;
@@ -104,6 +106,8 @@ function createFilterOptionSQL(brands, categories, colors) {
   if (colors != "") {
     if(filterOptionWasAdded) {
       sql += " AND "
+    } else {
+      sql += "WHERE "
     }
     sql += `Farbe IN (${colors})`;
   }
