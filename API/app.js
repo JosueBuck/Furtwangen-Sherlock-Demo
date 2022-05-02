@@ -112,6 +112,16 @@ app.get("/getBikeById/:id", async (req, res) => {
 });
 
 /* 
+  POST - GET Bikes By Filter Options
+*/
+app.post("/getBikesByFilterOptions", async (req, res) => {
+  const body = req.body;
+  //console.log(body);
+  const bikes = await db.getBikesByFilterOptions(body);
+  res.send(bikes);
+});
+
+/* 
   GET All Contracts
 */
 app.get("/getAllContracts", async (req, res) => {
