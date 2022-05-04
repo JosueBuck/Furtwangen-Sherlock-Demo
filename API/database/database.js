@@ -34,10 +34,12 @@ async function getBikeFilterOptions() {
       `SELECT distinct Kategorie FROM Fahrrad`
     );
     const colors = await connection.query(`SELECT distinct Farbe FROM Fahrrad`);
+    const status = [{"status":"Verfügbar"}, {"status":"Verliehen"}];
     const filterOptions = {
       brands,
       categories,
       colors,
+      status
     };
     return filterOptions;
   } catch (error) {
@@ -73,7 +75,8 @@ async function getBikesByFilterOptions(_filterOptions) {
     let brands = getWhereFilter(_filterOptions.brands);
     let categories = getWhereFilter(_filterOptions.categories);
     let colors = getWhereFilter(_filterOptions.colors);
-    let sql = createFilterOptionSQL(brands, categories, colors)
+    let status = getWhereFilter(_filterOptions.status);
+    let sql = createFilterOptionSQL(brands, categories, colors, status)
     const bike = await connection.query(
       sql
     );
@@ -86,7 +89,7 @@ async function getBikesByFilterOptions(_filterOptions) {
     }
   }
 }
-function createFilterOptionSQL(brands, categories, colors) {
+function createFilterOptionSQL(brands, categories, colors, status) {
   let sql = `SELECT * FROM Fahrrad `;
   let filterOptionWasAdded = false;
 
@@ -111,18 +114,27 @@ function createFilterOptionSQL(brands, categories, colors) {
     }
     sql += `Farbe IN (${colors})`;
   }
+  if (status != "") {
+    if(filterOptionWasAdded) {
+      sql += " AND "
+    } else {
+      sql += "WHERE "
+    }
+    sql += `Zustand IN (${status})`;
+  }
 
   return sql;
 }
 
 function getWhereFilter(_filterOptionArray) {
   let filterOption = "";
-  for (let i = 0; i < _filterOptionArray.length; i++) {
+  for (let i = 0; i < _filterOptionArray?.length; i++) {
     filterOption += `'${_filterOptionArray[i]}'`;
     if (i+1 != _filterOptionArray.length) {
       filterOption += ",";
     }
   }
+  console.log("filter option", filterOption)
   return filterOption;
 }
 
