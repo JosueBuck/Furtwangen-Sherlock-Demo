@@ -10,6 +10,10 @@ const pool = mariadb.createPool({
   connectionLimit: 5,
 });
 
+/* 
+  Basic
+*/
+
 async function getAllDataFromTable(_tableName) {
   let connection;
   try {
@@ -24,6 +28,12 @@ async function getAllDataFromTable(_tableName) {
     }
   }
 }
+
+/* 
+
+  Bikes
+
+*/
 
 async function getBikeFilterOptions() {
   let connection;
@@ -194,6 +204,31 @@ async function deleteBike(_id) {
   }
 }
 
+/* 
+
+  Customer
+
+*/
+
+async function createNewCustomer(_customerInfo) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    let response = await connection.query(
+      `INSERT INTO Kunde (Kunde_ID, Nachname, Vorname, Anschrift, Mail, Phone, Geburtsdatum, Geschlecht) VALUES ('${_customerInfo.customer_ID}', '${_customerInfo.lastname}', '${_customerInfo.firstname}', '${_customerInfo.address}', '${_customerInfo.mail}', ${_customerInfo.phone}, '${_customerInfo.birthday}', '${_customerInfo.sex}')`
+    );
+    console.log(response);
+    return "Customer was created!";
+  } catch (error) {
+    console.log("error: ", error);
+    return error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 module.exports = {
   getAllDataFromTable,
   getBikeFilterOptions,
@@ -202,4 +237,5 @@ module.exports = {
   updateBikeStatus,
   createNewBike,
   deleteBike,
+  createNewCustomer,
 };

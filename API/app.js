@@ -163,3 +163,12 @@ app.get("/getAllCustomers", async (req, res) => {
   const bikes = await db.getAllDataFromTable("Kunde");
   res.send(bikes);
 });
+
+/* 
+  POST Create New Customer
+*/
+app.post("/createNewCustomer", async (req, res) => {
+  const body = req.body;
+  const bikes = await db.createNewCustomer(body);
+  res.send(bikes);
+});
