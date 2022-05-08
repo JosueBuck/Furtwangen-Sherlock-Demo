@@ -44,7 +44,7 @@ async function getBikeFilterOptions() {
       `SELECT distinct Kategorie FROM Fahrrad`
     );
     const colors = await connection.query(`SELECT distinct Farbe FROM Fahrrad`);
-    const status = [{ status: 0 }, { status: 1 }, , { status: 2 }];
+    const status = [{ status: 0 }, { status: 1 }, { status: 2 }];
     const filterOptions = {
       brands,
       categories,

@@ -112,9 +112,9 @@ app.get("/getBikeById/:id", async (req, res) => {
 });
 
 /* 
-  GET Bikes By Filter Options
+  POST Bikes By Filter Options
 */
-app.get("/getBikesByFilterOptions", async (req, res) => {
+app.post("/getBikesByFilterOptions", async (req, res) => {
   const body = req.body;
   const response = await db.getBikesByFilterOptions(body);
   res.send(response);
