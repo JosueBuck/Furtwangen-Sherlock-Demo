@@ -112,14 +112,32 @@ app.get("/getBikeById/:id", async (req, res) => {
 });
 
 /* 
-  POST - GET Bikes By Filter Options
+  GET Bikes By Filter Options
 */
 app.get("/getBikesByFilterOptions", async (req, res) => {
   const body = req.body;
-  //console.log(body);
   const bikes = await db.getBikesByFilterOptions(body);
   res.send(bikes);
 });
+
+/* 
+  POST Update Bike Status 
+*/
+app.post("/updateBikeStatus/:id", async (req, res) => {
+  const bikeId = req.params.id;
+  const status = req.query.status;
+  const response = await db.updateBikeStatus(bikeId, status);
+  res.send(`Bike status was changed to ${status}`);
+})
+
+/* 
+  POST Create New Bike 
+*/
+app.post("/createNewBike", async (req, res) => {
+  const body = req.body;
+  const response = await db.createNewBike(body);
+  res.send(response);
+})
 
 /* 
   GET All Contracts
