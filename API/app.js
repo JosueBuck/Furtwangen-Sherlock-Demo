@@ -140,6 +140,15 @@ app.post("/createNewBike", async (req, res) => {
 })
 
 /* 
+  DELETE Bike 
+*/
+app.delete("/deleteBike/:id", async (req, res) => {
+  const id = req.params.id;
+  const response = await db.deleteBike(id);
+  res.send(response);
+})
+
+/* 
   GET All Contracts
 */
 app.get("/getAllContracts", async (req, res) => {

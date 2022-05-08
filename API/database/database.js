@@ -175,6 +175,25 @@ async function createNewBike(_bike) {
   }
 }
 
+async function deleteBike(_id) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    let response = await connection.query(
+      `DELETE FROM Fahrrad WHERE Fahrrad_ID='${_id}'`
+    );
+    console.log(response);
+    return "Bike was deleted!";
+  } catch (error) {
+    console.log("error: ", error);
+    return error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 module.exports = {
   getAllDataFromTable,
   getBikeFilterOptions,
@@ -182,4 +201,5 @@ module.exports = {
   getBikesByFilterOptions,
   updateBikeStatus,
   createNewBike,
+  deleteBike,
 };
