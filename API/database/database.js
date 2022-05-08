@@ -206,6 +206,31 @@ async function deleteBike(_id) {
 
 /* 
 
+  Contract
+
+*/
+
+async function createNewContract(_contractInfo) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    let response = await connection.query(
+      `INSERT INTO Auftrag (Auftrag_ID, Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.contract_ID}', '${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
+    );
+    console.log(response);
+    return "Contract was created!";
+  } catch (error) {
+    console.log("error: ", error);
+    return error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+/* 
+
   Customer
 
 */
@@ -237,5 +262,6 @@ module.exports = {
   updateBikeStatus,
   createNewBike,
   deleteBike,
+  createNewContract,
   createNewCustomer,
 };

@@ -90,16 +90,16 @@ app.post("/getSpecificData/:collectionName", async (req, res) => {
   GET All Bikes
 */
 app.get("/getAllBikes", async (req, res) => {
-  const bikes = await db.getAllDataFromTable("Fahrrad");
-  res.send(bikes);
+  const response = await db.getAllDataFromTable("Fahrrad");
+  res.send(response);
 });
 
 /* 
   GET Bike Filter Options
 */
 app.get("/getBikeFilterOptions", async (req, res) => {
-  const filterOptions = await db.getBikeFilterOptions();
-  res.send(filterOptions);
+  const response = await db.getBikeFilterOptions();
+  res.send(response);
 });
 
 /* 
@@ -107,8 +107,8 @@ app.get("/getBikeFilterOptions", async (req, res) => {
 */
 app.get("/getBikeById/:id", async (req, res) => {
   const bikeId = req.params.id;
-  const bike = await db.getBikeById(bikeId);
-  res.send(bike);
+  const response = await db.getBikeById(bikeId);
+  res.send(response);
 });
 
 /* 
@@ -116,8 +116,8 @@ app.get("/getBikeById/:id", async (req, res) => {
 */
 app.get("/getBikesByFilterOptions", async (req, res) => {
   const body = req.body;
-  const bikes = await db.getBikesByFilterOptions(body);
-  res.send(bikes);
+  const response = await db.getBikesByFilterOptions(body);
+  res.send(response);
 });
 
 /* 
@@ -152,16 +152,25 @@ app.delete("/deleteBike/:id", async (req, res) => {
   GET All Contracts
 */
 app.get("/getAllContracts", async (req, res) => {
-  const bikes = await db.getAllDataFromTable("Auftrag");
-  res.send(bikes);
+  const response = await db.getAllDataFromTable("Auftrag");
+  res.send(response);
+});
+
+/* 
+  POST New Contract
+*/
+app.post("/createNewContract", async (req, res) => {
+  const body = req.body;
+  const response = await db.createNewContract(body);
+  res.send(response);
 });
 
 /* 
   GET All Customers
 */
 app.get("/getAllCustomers", async (req, res) => {
-  const bikes = await db.getAllDataFromTable("Kunde");
-  res.send(bikes);
+  const response = await db.getAllDataFromTable("Kunde");
+  res.send(response);
 });
 
 /* 
@@ -169,6 +178,6 @@ app.get("/getAllCustomers", async (req, res) => {
 */
 app.post("/createNewCustomer", async (req, res) => {
   const body = req.body;
-  const bikes = await db.createNewCustomer(body);
-  res.send(bikes);
+  const response = await db.createNewCustomer(body);
+  res.send(response);
 });
