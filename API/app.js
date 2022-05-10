@@ -62,7 +62,7 @@ app.get("/getCollectionSchema/:collectionName", async (req, res) => {
 });
 
 /* 
-  GET Collection Schema
+  POST Get Specific Data (fully customizable -> requires data in body!)
 */
 app.post("/getSpecificData/:collectionName", async (req, res) => {
   const collectionName = req.params.collectionName;
@@ -79,6 +79,18 @@ app.post("/getSpecificData/:collectionName", async (req, res) => {
 
   res.send(specificData);
 });
+
+/* 
+  GET all contracts of a specific customer
+*/
+app.get("/getAllCustomerContracts/:id", async (req, res) => {
+  const id = req.params.id;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.getAllCustomerContracts(accessToken, qid);
+  res.send(response);
+})
+
 
 /* 
 
@@ -128,7 +140,7 @@ app.post("/updateBikeStatus/:id", async (req, res) => {
   const status = req.query.status;
   const response = await db.updateBikeStatus(bikeId, status);
   res.send(`Bike status was changed to ${status}`);
-})
+});
 
 /* 
   POST Create New Bike 
@@ -137,7 +149,7 @@ app.post("/createNewBike", async (req, res) => {
   const body = req.body;
   const response = await db.createNewBike(body);
   res.send(response);
-})
+});
 
 /* 
   DELETE Bike 
@@ -146,7 +158,7 @@ app.delete("/deleteBike/:id", async (req, res) => {
   const id = req.params.id;
   const response = await db.deleteBike(id);
   res.send(response);
-})
+});
 
 /* 
   GET All Contracts

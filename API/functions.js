@@ -1,5 +1,5 @@
 const axios = require("axios").default;
-require('dotenv').config()
+require("dotenv").config();
 const qs = require("qs");
 
 /* API Values */
@@ -8,7 +8,6 @@ const FAHRRAD_VERLEIH = "Fahrrad_Verleih";
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BASIC_URL = `https://${DEMO_NAME}.sherlock-cloud.de`;
-
 
 /* 
   <<Body Handler>>
@@ -29,7 +28,7 @@ async function useApi(_method, _url, _headers, _data, _isUrlEncoded) {
     method: _method,
     headers: _headers,
     url: `${BASIC_URL}${_url}`,
-    data: handleBody(_data, _isUrlEncoded)
+    data: handleBody(_data, _isUrlEncoded),
   })
     .then(function (response) {
       return response.data;
@@ -42,7 +41,7 @@ async function useApi(_method, _url, _headers, _data, _isUrlEncoded) {
       } else if (error.request) {
         console.log(error.request);
       } else {
-        console.log('Error', error.message);
+        console.log("Error", error.message);
       }
     });
 
@@ -87,24 +86,52 @@ async function getCollectionSchema(_accessToken, _collectionName) {
 }
 
 async function getSpecificData(_accessToken, _collectionName, _body) {
-  const headers = { 
-    Authorization: `Bearer ${_accessToken}` ,
-    "content-type": "application/json"
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "content-type": "application/json",
   };
 
   const data = _body;
 
   const url = `/def-api/search/${_collectionName}`;
 
-  const specificData = await useApi("post", url, headers, data)
+  const specificData = await useApi("post", url, headers, data);
   return specificData;
 }
 
+async function getAllCustomerContracts(_accessToken, _id) {
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "content-type": "application/json",
+  };
+  const data = {
+    __comment: "Search all contracts with specific cusomter id",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["Auftrag"],
+    filter: {
+      logic: "and",
+      filters: [
+        {
+          field: "KundeID",
+          operator: "eq",
+          value: _id,
+        },
+      ],
+    },
+  };
+  const url = `/def-api/search/Fahrrad_Verleih`;
 
+  const contracts = await useApi("post", url, headers, data);
+  return contracts;
+}
 
 module.exports = {
   getTokens,
   getAvailableCollections,
   getCollectionSchema,
-  getSpecificData
+  getSpecificData,
+  getAllCustomerContracts,
 };
