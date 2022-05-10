@@ -229,6 +229,28 @@ async function createNewContract(_contractInfo) {
   }
 }
 
+async function deleteCustomerContracts(_id) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    let response = await connection.query(
+      `DELETE FROM Auftrag WHERE Kunde_ID='${_id}'`
+    );
+    if(response.affectedRows == 0) {
+      throw Error("No contract exists with this user_id!")
+    }
+    console.log(response);
+    return "Customer was deleted!";
+  } catch (error) {
+    console.log("error: ", error);
+    return error.message;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 /* 
 
   Customer
@@ -254,6 +276,28 @@ async function createNewCustomer(_customerInfo) {
   }
 }
 
+async function deleteCustomer(_id) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    let response = await connection.query(
+      `DELETE FROM Kunde WHERE Kunde_ID='${_id}'`
+    );
+    if(response.affectedRows == 0) {
+      throw Error("No user exists with this id!")
+    }
+    console.log(response);
+    return "Customer was deleted!";
+  } catch (error) {
+    console.log("error: ", error);
+    return error.message;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 module.exports = {
   getAllDataFromTable,
   getBikeFilterOptions,
@@ -263,5 +307,7 @@ module.exports = {
   createNewBike,
   deleteBike,
   createNewContract,
+  deleteCustomerContracts,
   createNewCustomer,
+  deleteCustomer,
 };

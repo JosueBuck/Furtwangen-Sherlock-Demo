@@ -166,6 +166,15 @@ app.post("/createNewContract", async (req, res) => {
 });
 
 /* 
+  DELETE All Customers Contracts
+*/
+app.post("/deleteCustomerContracts", async (req, res) => {
+  const id = req.params.id;
+  const response = await db.deleteCustomerContracts(id);
+  res.send(response);
+});
+
+/* 
   GET All Customers
 */
 app.get("/getAllCustomers", async (req, res) => {
@@ -179,5 +188,15 @@ app.get("/getAllCustomers", async (req, res) => {
 app.post("/createNewCustomer", async (req, res) => {
   const body = req.body;
   const response = await db.createNewCustomer(body);
+  res.send(response);
+});
+
+/* 
+  DELETE Customer
+*/
+app.delete("/deleteCustomer/:id", async (req, res) => {
+  const id = req.params.id;
+  db.deleteCustomerContracts(id);
+  const response = await db.deleteCustomer(id);
   res.send(response);
 });
