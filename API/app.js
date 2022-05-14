@@ -67,7 +67,6 @@ app.get("/getCollectionSchema/:collectionName", async (req, res) => {
 app.post("/getSpecificData/:collectionName", async (req, res) => {
   const collectionName = req.params.collectionName;
   const body = req.body;
-  console.log(collectionName);
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
 
@@ -87,8 +86,19 @@ app.get("/getAllCustomerContracts/:id", async (req, res) => {
   const id = req.params.id;
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
-  const response = await functions.getAllCustomerContracts(accessToken, qid);
+  const response = await functions.getAllCustomerContracts(accessToken, id);
   res.send(response);
+})
+
+/* 
+  Add Database User to Sherlock
+*/
+app.get("/addUserToSherlock", async (req, res) => {
+  const body = req.body;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.addUserToSherlock(accessToken, body);
+  res.send("Done");
 })
 
 
@@ -199,7 +209,12 @@ app.get("/getAllCustomers", async (req, res) => {
 */
 app.post("/createNewCustomer", async (req, res) => {
   const body = req.body;
-  const response = await db.createNewCustomer(body);
+  
+  let response = await db.createNewCustomer(body);
+  if (response == 200) {
+    response = "Customer was created + uploaded to Sherlock"
+  }
+  
   res.send(response);
 });
 
@@ -208,7 +223,6 @@ app.post("/createNewCustomer", async (req, res) => {
 */
 app.delete("/deleteCustomer/:id", async (req, res) => {
   const id = req.params.id;
-  db.deleteCustomerContracts(id);
   const response = await db.deleteCustomer(id);
   res.send(response);
 });

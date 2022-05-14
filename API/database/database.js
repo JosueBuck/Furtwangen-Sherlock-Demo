@@ -1,5 +1,6 @@
 const mariadb = require("mariadb");
 const mysql = require("mysql");
+const functions = require("../functions"); 
 
 const pool = mariadb.createPool({
   host: process.env.DB_HOST,
@@ -21,7 +22,7 @@ async function getAllDataFromTable(_tableName) {
     const data = await connection.query(`SELECT * FROM ${_tableName}`);
     return data;
   } catch (error) {
-    console.log(error);
+    return error;
   } finally {
     if (connection) {
       connection.release();
@@ -53,7 +54,7 @@ async function getBikeFilterOptions() {
     };
     return filterOptions;
   } catch (error) {
-    console.log(error);
+    return error;
   } finally {
     if (connection) {
       connection.release();
@@ -70,7 +71,7 @@ async function getBikeById(_id) {
     );
     return bike;
   } catch (error) {
-    console.log(error);
+    return error;
   } finally {
     if (connection) {
       connection.release();
@@ -90,7 +91,7 @@ async function getBikesByFilterOptions(_filterOptions) {
     const bike = await connection.query(sql);
     return bike;
   } catch (error) {
-    console.log(error);
+    return error;
   } finally {
     if (connection) {
       connection.release();
@@ -144,7 +145,6 @@ function getWhereFilter(_filterOptionArray) {
       filterOption += ",";
     }
   }
-  console.log("filter option", filterOption);
   return filterOption;
 }
 
@@ -157,7 +157,6 @@ async function updateBikeStatus(_id, _status) {
     );
     return response;
   } catch (error) {
-    console.log("error: ", error);
     return error;
   } finally {
     if (connection) {
@@ -173,10 +172,8 @@ async function createNewBike(_bike) {
     let response = await connection.query(
       `INSERT INTO Fahrrad (Fahrrad_ID, Marke, Kategorie, Farbe, Zustand, Akku, Location) VALUES ('${_bike.bike_ID}', '${_bike.brand}', '${_bike.category}', '${_bike.color}', '${_bike.status}', ${_bike.battery}, '${_bike.location}')`
     );
-    console.log(response);
     return "Bike was created!";
   } catch (error) {
-    console.log("error: ", error);
     return error;
   } finally {
     if (connection) {
@@ -192,10 +189,8 @@ async function deleteBike(_id) {
     let response = await connection.query(
       `DELETE FROM Fahrrad WHERE Fahrrad_ID='${_id}'`
     );
-    console.log(response);
     return "Bike was deleted!";
   } catch (error) {
-    console.log("error: ", error);
     return error;
   } finally {
     if (connection) {
@@ -217,10 +212,8 @@ async function createNewContract(_contractInfo) {
     let response = await connection.query(
       `INSERT INTO Auftrag (Auftrag_ID, Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.contract_ID}', '${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
     );
-    console.log(response);
     return "Contract was created!";
   } catch (error) {
-    console.log("error: ", error);
     return error;
   } finally {
     if (connection) {
@@ -236,11 +229,10 @@ async function deleteCustomerContracts(_id) {
     let response = await connection.query(
       `DELETE FROM Auftrag WHERE Kunde_ID='${_id}'`
     );
-    if(response.affectedRows == 0) {
-      throw Error("No contract exists with this user_id!")
+    if (response.affectedRows == 0) {
+      response = "No contracts where found!"
     }
-    console.log(response);
-    return "Customer was deleted!";
+    return response;
   } catch (error) {
     console.log("error: ", error);
     return error.message;
@@ -261,13 +253,17 @@ async function createNewCustomer(_customerInfo) {
   let connection;
   try {
     connection = await pool.getConnection();
+    await connection.beginTransaction();
     let response = await connection.query(
       `INSERT INTO Kunde (Kunde_ID, Nachname, Vorname, Anschrift, Mail, Phone, Geburtsdatum, Geschlecht) VALUES ('${_customerInfo.customer_ID}', '${_customerInfo.lastname}', '${_customerInfo.firstname}', '${_customerInfo.address}', '${_customerInfo.mail}', ${_customerInfo.phone}, '${_customerInfo.birthday}', '${_customerInfo.sex}')`
     );
-    console.log(response);
-    return "Customer was created!";
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    await functions.addUserToSherlock(accessToken, _customerInfo);
+    await connection.commit();
+    return 200;
   } catch (error) {
-    console.log("error: ", error);
+    connection.rollback();
     return error;
   } finally {
     if (connection) {
@@ -280,16 +276,18 @@ async function deleteCustomer(_id) {
   let connection;
   try {
     connection = await pool.getConnection();
+    connection.beginTransaction();
     let response = await connection.query(
       `DELETE FROM Kunde WHERE Kunde_ID='${_id}'`
     );
-    if(response.affectedRows == 0) {
-      throw Error("No user exists with this id!")
+    if (response.affectedRows == 0) {
+      throw Error("No user exists with this id!");
     }
-    console.log(response);
+    await deleteCustomerContracts(id);
+    connection.commit();
     return "Customer was deleted!";
   } catch (error) {
-    console.log("error: ", error);
+    connection.rollback();
     return error.message;
   } finally {
     if (connection) {
