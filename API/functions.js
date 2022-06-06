@@ -1,6 +1,8 @@
 const axios = require("axios").default;
 require("dotenv").config();
 const qs = require("qs");
+var FormData = require("form-data");
+var fs = require("fs");
 
 /* API Values */
 const DEMO_NAME = "furtwangen";
@@ -39,49 +41,42 @@ async function useApi(_method, _url, _headers, _data, _isUrlEncoded) {
         console.log(error.response.data);
         console.log(error.response.status);
         console.log(error.response.headers);
+        return error;
       } else if (error.request) {
         console.log(error.request);
+        return error;
       } else {
         console.log("Error", error.message);
+        return error;
       }
     });
-
   return response;
 }
 
 async function getTokens() {
   const headers = { "content-type": "application/x-www-form-urlencoded" };
-
   const data = {
     grant_type: "client_credentials",
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
   };
-
   const url = "/auth/realms/Sherlock/protocol/openid-connect/token";
-
   const tokens = await useApi("post", url, headers, data, true);
   return tokens.data;
 }
 
 async function getAvailableCollections(_accessToken) {
   const headers = { Authorization: `Bearer ${_accessToken}` };
-
   const data = {};
-
   const url = "/def-api/search/available-collections";
-
   const availableCollections = await useApi("get", url, headers, data);
   return availableCollections;
 }
 
 async function getCollectionSchema(_accessToken, _collectionName) {
   const headers = { Authorization: `Bearer ${_accessToken}` };
-
   const data = {};
-
   const url = `/def-api/search/${_collectionName}/schema`;
-
   const availableCollections = await useApi("get", url, headers, data);
   return availableCollections;
 }
@@ -91,11 +86,8 @@ async function getSpecificData(_accessToken, _collectionName, _body) {
     Authorization: `Bearer ${_accessToken}`,
     "content-type": "application/json",
   };
-
   const data = _body;
-
   const url = `/def-api/search/${_collectionName}`;
-
   const specificData = await useApi("post", url, headers, data);
   return specificData;
 }
@@ -124,61 +116,237 @@ async function getAllCustomerContracts(_accessToken, _id) {
     },
   };
   const url = `/def-api/search/Fahrrad_Verleih`;
-
   const contracts = await useApi("post", url, headers, data);
-  //console.log(contracts.data.results)
   return contracts.data.results;
 }
 
-async function addUserToSherlock(_accessToken, _user) {
-
+async function addContractToSherlock(_accessToken, _contract) {
+  console.log(_contract);
   const date = "----" + getCurrentDate();
   const url = "/def-api/import/datapackages";
   const headers = {
     Authorization: `Bearer ${_accessToken}`,
     "Content-type": `multipart/form-data; boundary=${date}`,
   };
+  const crlf = "\r\n";
+  const system = "Fahrrad_Verleih";
+  const type = "Auftrag";
+  const meta = `"Auftragsnummer":{ "type":"string", "value":"${_contract.contract_ID}"}, "Name Kunde":{ "type":"string", "value":"${_contract.name_customer}"}, "KundeID":{ "type":"string", "value":"${_contract.customer_ID}" }, "Fahrrad_ID":{ "type":"string", "value":"${_contract.bike_ID}" }, "Datum_von":{ "type":"string", "value":"${_contract.date_1}" }, "Datum_bis":{ "type":"string", "value":"${_contract.date_2}" }`;
+  const data_string =
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="content"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    '  "system": "' +
+    system +
+    '",' +
+    crlf +
+    '  "type": "' +
+    type +
+    '",' +
+    crlf +
+    '  "referenceId": "' +
+    `${_contract.contract_ID}` +
+    '",' +
+    crlf +
+    '  "binarycontents": [' +
+    crlf +
+    "    {" +
+    crlf +
+    '      "path": "metadata+json",' +
+    crlf +
+    '      "contentType": "*META*",' +
+    crlf +
+    '      "mimeType": "application/json"' +
+    crlf +
+    "    }" +
+    crlf +
+    "  ]" +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="files"; filename="Metadata.json"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    meta +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    "--" +
+    crlf;
 
+  const response = await useApi("post", url, headers, data_string);
+  return response.status;
+}
 
+async function deleteContractFromSherlock(_accessToken, _id) {
+  const date = "----" + getCurrentDate();
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "Content-type": `multipart/form-data; boundary=${date}`,
+  };
+  const url = `/def-api/import/datapackages`;
+
+  var data = new FormData();
+  data.append(
+    "content",
+    `{\n\t"system": "Fahrrad_Verleih",\n\t"type": "Auftrag",\n\t"referenceId": "${_id}",\n\t"binarycontents": [\n\t\t{\n\t\t\t"path": "metadata.json",\n\t\t\t"contentType": "*META*",\n\t\t\t"mimeType": "application/json"\n\t\t}\n\t]\n}`
+  );
+  data.append("content", "{\n}");
+
+  var config = {
+    method: 'post',
+    url: `https://${DEMO_NAME}.sherlock-cloud.de/def-api/import/datapackages`,
+    headers: { 
+      'Authorization': `Bearer ${_accessToken}`, 
+      ...data.getHeaders()
+    },
+    data : data
+  };
+  
+  const response = await axios(config)
+  .then(function (response) {
+    console.log(response);
+    console.log(response.status);
+    return response.status;
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+
+  return response;
+}
+
+async function addUserToSherlock(_accessToken, _user) {
+  const date = "----" + getCurrentDate();
+  const url = "/def-api/import/datapackages";
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "Content-type": `multipart/form-data; boundary=${date}`,
+  };
   const crlf = "\r\n";
   const system = "Fahrrad_Verleih";
   const type = "User";
-  /* const meta = '  "_id":{' + crlf +
-			'    "type":"string",' + crlf +
-			'    "value":"' + "Kunde_ID_UID10001" + '"' + crlf +
-			'  }' + crlf; */
-      //const meta = `------${date} Content-Disposition: form-data; name=content { system: ${system}, type: User, referenceId: Kunde_ID_UID10009, binarycontents: [ { path: metadata.json, contentType: *META*, mimeType: application/json } ] } ------${date} Content-Disposition: form-data; name=files; filename=Metadata.json { Kunde_ID:{ type:string, value:UID10009 }, Nachname:{ type:string, value:Breuninger }, Vorname:{ type:string, value:Eva }, Anschrift:{ type:string, value:Baumannstraße 26, 78120 Furtwangen }, Mail:{ type:string, value:eva.breuni@outlook.de }, Phone:{ type:string, value:01747287356 }, Geburtsdatum:{ type:string, value:1998-07-25 }, Geschlecht:{ type:string, value:w }, _id:{ type:string, value:Kunde_ID_UID10009 } } ------${date}--`;
-      const meta = `"Kunde_ID":{ "type":"string", "value":"${_user.customer_ID}" }, "Nachname":{ "type":"string", "value":"${_user.lastname}" }, "Vorname":{ "type":"string", "value":"${_user.firstname}" }, "Anschrift":{ "type":"string", "value":"${_user.address}" }, "Mail":{ "type":"string", "value":"${_user.mail}" }, "Phone":{ "type":"string", "value":"${_user.phone}" }, "Geburtsdatum":{ "type":"string", "value":"${_user.birthday}" }, "Geschlecht":{ "type":"string", "value":"${_user.sex}" }, "_id":{ "type":"string", "value":"${_user.customer_ID}" }`;
-
-      const data_string = crlf +
-			'--' + date + crlf +
-			'Content-Disposition: form-data; name="content"' + crlf +
-			'' + crlf +
-			'{' + crlf +
-			'  "system": "' + system + '",' + crlf +
-			'  "type": "' + type + '",' + crlf +
-			'  "referenceId": "' + `${_user.customer_ID}` + '",' + crlf +
-			'  "binarycontents": [' + crlf +
-			'    {' + crlf +
-			'      "path": "metadata+json",' + crlf +
-			'      "contentType": "*META*",' + crlf +
-			'      "mimeType": "application/json"' + crlf +
-			'    }' + crlf +
-			'  ]' + crlf +
-			'}' + crlf +
-			'' + crlf +
-			'--' + date + crlf +
-			'Content-Disposition: form-data; name="files"; filename="Metadata.json"' + crlf +
-			'' + crlf +
-			'{' + crlf +
-			meta + crlf +
-			'}' + crlf +
-			'' + crlf +
-			'--' + date + '--' + crlf;	
+  const meta = `"Kunde_ID":{ "type":"string", "value":"${_user.customer_ID}" }, "Nachname":{ "type":"string", "value":"${_user.lastname}" }, "Vorname":{ "type":"string", "value":"${_user.firstname}" }, "Anschrift":{ "type":"string", "value":"${_user.address}" }, "Mail":{ "type":"string", "value":"${_user.mail}" }, "Phone":{ "type":"string", "value":"${_user.phone}" }, "Geburtsdatum":{ "type":"string", "value":"${_user.birthday}" }, "Geschlecht":{ "type":"string", "value":"${_user.sex}" }, "_id":{ "type":"string", "value":"${_user.customer_ID}" }`;
+  const data_string =
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="content"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    '  "system": "' +
+    system +
+    '",' +
+    crlf +
+    '  "type": "' +
+    type +
+    '",' +
+    crlf +
+    '  "referenceId": "' +
+    `${_user.customer_ID}` +
+    '",' +
+    crlf +
+    '  "binarycontents": [' +
+    crlf +
+    "    {" +
+    crlf +
+    '      "path": "metadata+json",' +
+    crlf +
+    '      "contentType": "*META*",' +
+    crlf +
+    '      "mimeType": "application/json"' +
+    crlf +
+    "    }" +
+    crlf +
+    "  ]" +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="files"; filename="Metadata.json"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    meta +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    "--" +
+    crlf;
 
   const response = await useApi("post", url, headers, data_string);
-  console.log(response)
   return response.status;
+}
+
+async function deleteUserFromSherlock(_accessToken, _id) {
+  const date = "----" + getCurrentDate();
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "Content-type": `multipart/form-data; boundary=${date}`,
+  };
+  const url = `/def-api/import/datapackages`;
+
+  var data = new FormData();
+  data.append(
+    "content",
+    `{\n\t"system": "Fahrrad_Verleih",\n\t"type": "User",\n\t"referenceId": "${_id}",\n\t"binarycontents": [\n\t\t{\n\t\t\t"path": "metadata.json",\n\t\t\t"contentType": "*META*",\n\t\t\t"mimeType": "application/json"\n\t\t}\n\t]\n}`
+  );
+  data.append("content", "{\n}");
+
+  var config = {
+    method: 'post',
+    url: `https://${DEMO_NAME}.sherlock-cloud.de/def-api/import/datapackages`,
+    headers: { 
+      'Authorization': `Bearer ${_accessToken}`, 
+      ...data.getHeaders()
+    },
+    data : data
+  };
+  
+  const response = await axios(config)
+  .then(function (response) {
+    console.log(response);
+    console.log(response.status);
+    return response.status;
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+
+  return response;
 }
 
 function getCurrentDate() {
@@ -217,5 +385,8 @@ module.exports = {
   getCollectionSchema,
   getSpecificData,
   getAllCustomerContracts,
+  addContractToSherlock,
+  deleteContractFromSherlock,
   addUserToSherlock,
+  deleteUserFromSherlock,
 };

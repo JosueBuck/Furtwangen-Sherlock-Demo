@@ -170,7 +170,7 @@ async function createNewBike(_bike) {
   try {
     connection = await pool.getConnection();
     let response = await connection.query(
-      `INSERT INTO Fahrrad (Fahrrad_ID, Marke, Kategorie, Farbe, Zustand, Akku, Location) VALUES ('${_bike.bike_ID}', '${_bike.brand}', '${_bike.category}', '${_bike.color}', '${_bike.status}', ${_bike.battery}, '${_bike.location}')`
+      `INSERT INTO Fahrrad (Fahrrad_ID, Marke, Kategorie, Farbe, Zustand, Akku, Location, Foto) VALUES ('${_bike.bike_ID}', '${_bike.brand}', '${_bike.category}', '${_bike.color}', '${_bike.status}', ${_bike.battery}, '${_bike.location}', '${_bike.photo}')`
     );
     return "Bike was created!";
   } catch (error) {
@@ -209,11 +209,17 @@ async function createNewContract(_contractInfo) {
   let connection;
   try {
     connection = await pool.getConnection();
+    await connection.beginTransaction();
     let response = await connection.query(
       `INSERT INTO Auftrag (Auftrag_ID, Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.contract_ID}', '${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
     );
-    return "Contract was created!";
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    await functions.addContractToSherlock(accessToken, _contractInfo)
+    await connection.commit();
+    return 200;
   } catch (error) {
+    connection.rollback();
     return error;
   } finally {
     if (connection) {
@@ -226,15 +232,26 @@ async function deleteCustomerContracts(_id) {
   let connection;
   try {
     connection = await pool.getConnection();
+    connection.beginTransaction();
     let response = await connection.query(
-      `DELETE FROM Auftrag WHERE Kunde_ID='${_id}'`
+      `DELETE FROM Auftrag WHERE Auftrag_ID='${_id}'`
     );
     if (response.affectedRows == 0) {
-      response = "No contracts where found!"
+      response = "No contracts where found!";
+    } else {
+      response = "Contract was deleted!";
     }
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    const sherlockResponse = await functions.deleteContractFromSherlock(accessToken, _id);
+    if (sherlockResponse >= 400 || sherlockResponse == undefined) {
+      throw Error("Error while uploading data to sherlock");
+    }
+    connection.commit();
     return response;
   } catch (error) {
     console.log("error: ", error);
+    connection.rollback();
     return error.message;
   } finally {
     if (connection) {
@@ -280,10 +297,13 @@ async function deleteCustomer(_id) {
     let response = await connection.query(
       `DELETE FROM Kunde WHERE Kunde_ID='${_id}'`
     );
-    if (response.affectedRows == 0) {
-      throw Error("No user exists with this id!");
+    await deleteCustomerContracts(_id);
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    const sherlockResponse = await functions.deleteUserFromSherlock(accessToken, _id);
+    if (sherlockResponse >= 400 || sherlockResponse == undefined) {
+      throw Error("Error while uploading data to sherlock");
     }
-    await deleteCustomerContracts(id);
     connection.commit();
     return "Customer was deleted!";
   } catch (error) {

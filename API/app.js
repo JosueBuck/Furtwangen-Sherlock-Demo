@@ -91,14 +91,36 @@ app.get("/getAllCustomerContracts/:id", async (req, res) => {
 })
 
 /* 
+  POST upload contract to Sherlock
+*/
+app.post("/addContractToSherlock", async (req, res) => {
+  const body = req.body;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.addContractToSherlock(accessToken, body);
+  res.send(response);
+})
+
+/* 
   Add Database User to Sherlock
 */
-app.get("/addUserToSherlock", async (req, res) => {
+app.post("/addUserToSherlock", async (req, res) => {
   const body = req.body;
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
   const response = await functions.addUserToSherlock(accessToken, body);
   res.send("Done");
+})
+
+/* 
+  DELETE User from Sherlock
+*/
+app.delete("/deleteUserFromSherlock/:id", async (req, res) => {
+  const id = req.params.id;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.deleteUserFromSherlock(accessToken, id);
+  res.send(response);
 })
 
 
@@ -134,7 +156,7 @@ app.get("/getBikeById/:id", async (req, res) => {
 });
 
 /* 
-  POST Bikes By Filter Options
+  POST get Bikes By Filter Options
 */
 app.post("/getBikesByFilterOptions", async (req, res) => {
   const body = req.body;
@@ -190,7 +212,7 @@ app.post("/createNewContract", async (req, res) => {
 /* 
   DELETE All Customers Contracts
 */
-app.post("/deleteCustomerContracts", async (req, res) => {
+app.delete("/deleteCustomerContracts/:id", async (req, res) => {
   const id = req.params.id;
   const response = await db.deleteCustomerContracts(id);
   res.send(response);
