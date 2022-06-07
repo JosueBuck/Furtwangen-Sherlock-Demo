@@ -70,7 +70,8 @@ async function getAvailableCollections(_accessToken) {
   const data = {};
   const url = "/def-api/search/available-collections";
   const availableCollections = await useApi("get", url, headers, data);
-  return availableCollections;
+  console.log(availableCollections.data);
+  return availableCollections.data;
 }
 
 async function getCollectionSchema(_accessToken, _collectionName) {
@@ -90,6 +91,52 @@ async function getSpecificData(_accessToken, _collectionName, _body) {
   const url = `/def-api/search/${_collectionName}`;
   const specificData = await useApi("post", url, headers, data);
   return specificData;
+}
+
+async function getAllBikesFromSherlock(_accessToken) {
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "content-type": "application/json",
+  };
+  const data = {
+    __comment: "Search all contracts with specific cusomter id",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["Fahrrad"]
+  };
+  const url = `/def-api/search/Fahrrad_Verleih`;
+  const contracts = await useApi("post", url, headers, data);
+  return contracts.data.results;
+}
+
+async function getBikeByIdFromSherlock(_accessToken, _id) {
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "content-type": "application/json",
+  };
+  const data = {
+    __comment: "Search all contracts with specific cusomter id",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["Fahrrad"],
+    filter: {
+      logic: "and",
+      filters: [
+        {
+          field: "FahrradID",
+          operator: "eq",
+          value: _id,
+        },
+      ],
+    },
+  };
+  const url = `/def-api/search/Fahrrad_Verleih`;
+  const contracts = await useApi("post", url, headers, data);
+  return contracts.data.results;
 }
 
 async function getAllCustomerContracts(_accessToken, _id) {
@@ -117,6 +164,34 @@ async function getAllCustomerContracts(_accessToken, _id) {
   };
   const url = `/def-api/search/Fahrrad_Verleih`;
   const contracts = await useApi("post", url, headers, data);
+  return contracts.data.results;
+}
+
+async function getContractById(_accessToken, _id) {
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`
+  };
+  const data = {
+    __comment: "Search contract by id",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["Auftrag"],
+    filter: {
+      logic: "and",
+      filters: [
+        {
+          field: "Auftragsnummer",
+          operator: "eq",
+          value: _id,
+        },
+      ],
+    },
+  };
+  const url = `/def-api/search/Fahrrad_Verleih`;
+  const contracts = await useApi("post", url, headers, data);
+  console.log(contracts);
   return contracts.data.results;
 }
 
@@ -311,6 +386,52 @@ async function addUserToSherlock(_accessToken, _user) {
   return response.status;
 }
 
+async function getAllUsers(_accessToken) {
+  const data = {
+    comment: "suche alle Kunden",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["User"]
+  };
+
+  const headers = { Authorization: `Bearer ${_accessToken}` };
+  const url = `/def-api/search/Fahrrad_Verleih`;
+
+  const user = await useApi("post", url, headers, data);
+  console.log(user);
+  return user.data.results;
+}
+
+async function getUserById(_accessToken, _id) {
+  const data = {
+    comment: "suche alle Kunden",
+    page: 0,
+    pageSize: 100,
+    query: "",
+    systems: ["Fahrrad_Verleih"],
+    types: ["User"],
+    filter: {
+      logic: "and",
+      filters: [
+        {
+          field: "KundeID",
+          operator: "eq",
+          value: _id
+        }
+      ]
+    }
+  };
+
+  const headers = { Authorization: `Bearer ${_accessToken}` };
+  const url = `/def-api/search/Fahrrad_Verleih`;
+
+  const user = await useApi("post", url, headers, data);
+  console.log(user);
+  return user.data.results;
+}
+
 async function deleteUserFromSherlock(_accessToken, _id) {
   const date = "----" + getCurrentDate();
   const headers = {
@@ -384,9 +505,14 @@ module.exports = {
   getAvailableCollections,
   getCollectionSchema,
   getSpecificData,
+  getAllBikesFromSherlock,
+  getBikeByIdFromSherlock,
   getAllCustomerContracts,
+  getContractById,
   addContractToSherlock,
   deleteContractFromSherlock,
   addUserToSherlock,
+  getAllUsers,
+  getUserById,
   deleteUserFromSherlock,
 };

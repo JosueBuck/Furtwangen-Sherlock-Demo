@@ -80,13 +80,46 @@ app.post("/getSpecificData/:collectionName", async (req, res) => {
 });
 
 /* 
+  GET all bikes
+*/
+app.get("/getAllBikesFromSherlock", async (req, res) => {
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.getAllBikesFromSherlock(accessToken);
+  res.send(response);
+})
+
+/* 
+  GET bike by id
+*/
+app.get("/getBikeByIdFromSherlock/:id", async (req, res) => {
+  const id = req.params.id;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.getBikeByIdFromSherlock(accessToken, id);
+  res.send(response);
+})
+
+/* 
   GET all contracts of a specific customer
 */
-app.get("/getAllCustomerContracts/:id", async (req, res) => {
+app.get("/getAllCustomerContractsFromSherlock/:id", async (req, res) => {
   const id = req.params.id;
   const tokens = await functions.getTokens();
   const accessToken = tokens.access_token;
   const response = await functions.getAllCustomerContracts(accessToken, id);
+  res.send(response);
+})
+
+
+/* 
+  GET contract by id
+*/
+app.get("/getContractByIdFromSherlock/:id", async (req, res) => {
+  const id = req.params.id;
+  const tokens = await functions.getTokens();
+  const accessToken = tokens.access_token;
+  const response = await functions.getContractById(accessToken, id);
   res.send(response);
 })
 
@@ -110,6 +143,23 @@ app.post("/addUserToSherlock", async (req, res) => {
   const accessToken = tokens.access_token;
   const response = await functions.addUserToSherlock(accessToken, body);
   res.send("Done");
+})
+
+/* GET all Users from Sherlock */
+app.get("/getAllCustomersFromSherlock", async (req, res) => {
+  const tokens = await functions.getTokens();
+  const access_token = tokens.access_token;
+  const response = await functions.getAllUsers(access_token);
+  res.send(response);
+})
+
+/* GET all Users from Sherlock */
+app.get("/getCustomerByIdFromSherlock/:id", async (req, res) => {
+  const id = req.params.id;
+  const tokens = await functions.getTokens();
+  const access_token = tokens.access_token;
+  const response = await functions.getUserById(access_token, id);
+  res.send(response);
 })
 
 /* 
