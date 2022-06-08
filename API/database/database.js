@@ -169,11 +169,17 @@ async function createNewBike(_bike) {
   let connection;
   try {
     connection = await pool.getConnection();
+    await connection.beginTransaction();
     let response = await connection.query(
       `INSERT INTO Fahrrad (Fahrrad_ID, Marke, Kategorie, Farbe, Zustand, Akku, Location, Foto) VALUES ('${_bike.bike_ID}', '${_bike.brand}', '${_bike.category}', '${_bike.color}', '${_bike.status}', ${_bike.battery}, '${_bike.location}', '${_bike.photo}')`
     );
-    return "Bike was created!";
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    await functions.addBikeToSherlock(accessToken, _bike)
+    await connection.commit();
+    return 200;
   } catch (error) {
+    connection.rollback();
     return error;
   } finally {
     if (connection) {
@@ -186,11 +192,18 @@ async function deleteBike(_id) {
   let connection;
   try {
     connection = await pool.getConnection();
+    await connection.beginTransaction();
     let response = await connection.query(
       `DELETE FROM Fahrrad WHERE Fahrrad_ID='${_id}'`
     );
-    return "Bike was deleted!";
+    const tokens = await functions.getTokens();
+    const accessToken = tokens.access_token;
+    await functions.deleteBikeFromSherlock(accessToken, _id)
+    await connection.commit();
+    return 200;
   } catch (error) {
+    console.log(error)
+    connection.rollback();
     return error;
   } finally {
     if (connection) {

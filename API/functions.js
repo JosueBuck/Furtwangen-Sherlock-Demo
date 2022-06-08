@@ -139,6 +139,113 @@ async function getBikeByIdFromSherlock(_accessToken, _id) {
   return contracts.data.results;
 }
 
+async function addBikeToSherlock(_accessToken, _bike) {
+  const date = "----" + getCurrentDate();
+  const url = "/def-api/import/datapackages";
+  const headers = {
+    Authorization: `Bearer ${_accessToken}`,
+    "Content-type": `multipart/form-data; boundary=${date}`,
+  };
+  const crlf = "\r\n";
+  const system = "Fahrrad_Verleih";
+  const type = "Fahrrad";
+  const meta = `"Marke":{ "type":"string", "value":"${_bike.brand}"}, "Farbe":{ "type":"string", "value":"${_bike.color}"}, "Kategorie":{ "type":"string", "value":"${_bike.category}" }, "FahrradID":{ "type":"string", "value":"${_bike.bike_ID}" }, "Zustand":{ "type":"string", "value":"${_bike.status}" }, "Akku":{ "type":"string", "value":"${_bike.battery}" }, "Location":{ "type":"string", "value":"${_bike.location}" }, "Foto":{ "type":"string", "value":"${_bike.photo}" }`;
+  const data_string =
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="content"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    '  "system": "' +
+    system +
+    '",' +
+    crlf +
+    '  "type": "' +
+    type +
+    '",' +
+    crlf +
+    '  "referenceId": "' +
+    `${_bike.bike_ID}` +
+    '",' +
+    crlf +
+    '  "binarycontents": [' +
+    crlf +
+    "    {" +
+    crlf +
+    '      "path": "metadata+json",' +
+    crlf +
+    '      "contentType": "*META*",' +
+    crlf +
+    '      "mimeType": "application/json"' +
+    crlf +
+    "    }" +
+    crlf +
+    "  ]" +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    crlf +
+    'Content-Disposition: form-data; name="files"; filename="Metadata.json"' +
+    crlf +
+    "" +
+    crlf +
+    "{" +
+    crlf +
+    meta +
+    crlf +
+    "}" +
+    crlf +
+    "" +
+    crlf +
+    "--" +
+    date +
+    "--" +
+    crlf;
+
+  const response = await useApi("post", url, headers, data_string);
+  return response.status;
+}
+
+async function deleteBikeFromSherlock(_accessToken, _id) {
+  var data = new FormData();
+  data.append(
+    "content",
+    `{\n\t"system": "Fahrrad_Verleih",\n\t"type": "Fahrrad",\n\t"referenceId": "${_id}",\n\t"binarycontents": [\n\t\t{\n\t\t\t"path": "metadata.json",\n\t\t\t"contentType": "*META*",\n\t\t\t"mimeType": "application/json"\n\t\t}\n\t]\n}`
+  );
+  data.append("content", "{\n}");
+
+  var config = {
+    method: 'post',
+    url: `https://${DEMO_NAME}.sherlock-cloud.de/def-api/import/datapackages`,
+    headers: { 
+      'Authorization': `Bearer ${_accessToken}`, 
+      ...data.getHeaders()
+    },
+    data : data
+  };
+  
+  const response = await axios(config)
+  .then(function (response) {
+    console.log(response);
+    console.log(response.status);
+    return response.status;
+  })
+  /* .catch(function (error) {
+    console.log(error);
+  }); */
+
+  return response;
+}
+
 async function getAllCustomerContracts(_accessToken, _id) {
   const headers = {
     Authorization: `Bearer ${_accessToken}`,
@@ -196,7 +303,6 @@ async function getContractById(_accessToken, _id) {
 }
 
 async function addContractToSherlock(_accessToken, _contract) {
-  console.log(_contract);
   const date = "----" + getCurrentDate();
   const url = "/def-api/import/datapackages";
   const headers = {
@@ -505,6 +611,8 @@ module.exports = {
   getAvailableCollections,
   getCollectionSchema,
   getSpecificData,
+  addBikeToSherlock,
+  deleteBikeFromSherlock,
   getAllBikesFromSherlock,
   getBikeByIdFromSherlock,
   getAllCustomerContracts,
