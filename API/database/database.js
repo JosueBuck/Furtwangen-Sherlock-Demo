@@ -329,6 +329,28 @@ async function deleteCustomer(_id) {
   }
 }
 
+/*
+  LogIn
+*/ 
+async function logIn(_userID, lastName){
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const user = await connection.query(
+      `SELECT * FROM Kunde WHERE Kunde_ID='${_userID}'`
+    );
+      // console.log(user);
+
+    return user;
+  } catch (error) {
+    return error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 module.exports = {
   getAllDataFromTable,
   getBikeFilterOptions,
@@ -341,4 +363,5 @@ module.exports = {
   deleteCustomerContracts,
   createNewCustomer,
   deleteCustomer,
+  logIn,
 };

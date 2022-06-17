@@ -298,3 +298,17 @@ app.delete("/deleteCustomer/:id", async (req, res) => {
   const response = await db.deleteCustomer(id);
   res.send(response);
 });
+
+/*
+  LogIn
+*/ 
+
+app.post("/logIn", async (req, res) => {
+  const body = req.body;
+  console.log(body);
+  console.log(body._userID);
+  console.log(body.lastName);
+  const response = await db.logIn(body._userID, body.lastName);
+  // console.log(response);
+  res.send(response);
+});
