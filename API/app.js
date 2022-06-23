@@ -6,9 +6,9 @@ const functions = require("./functions");
 const db = require("./database/database");
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
-app.use(cors({ origin: "http://127.0.0.1:5500" }));
+app.use(cors({ origin: "http://localhost:3000" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -305,10 +305,17 @@ app.delete("/deleteCustomer/:id", async (req, res) => {
 
 app.post("/logIn", async (req, res) => {
   const body = req.body;
-  console.log(body);
-  console.log(body._userID);
-  console.log(body.lastName);
   const response = await db.logIn(body._userID, body.lastName);
   // console.log(response);
+  res.send(response);
+});
+
+/*
+  getCustomer
+*/
+
+app.get("/getCustomer/:id", async (req, res) => {
+  const id = req.params.id;
+  const response = await db.getCustomer(id);
   res.send(response);
 });

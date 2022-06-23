@@ -329,6 +329,31 @@ async function deleteCustomer(_id) {
   }
 }
 
+
+
+/*
+  GetCustomer
+*/ 
+
+async function getCustomer(_id) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    //connection.beginTransaction();
+    let response = await connection.query(
+      `SELECT * FROM Kunde WHERE Kunde_ID='${_id}'`
+    );
+    return response;
+  } catch (error) {
+    connection.rollback();
+    return error.message;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 /*
   LogIn
 */ 
@@ -336,12 +361,16 @@ async function logIn(_userID, lastName){
   let connection;
   try {
     connection = await pool.getConnection();
-    const user = await connection.query(
+    const usersArray = await connection.query(
       `SELECT * FROM Kunde WHERE Kunde_ID='${_userID}'`
     );
-      // console.log(user);
 
-    return user;
+    if(usersArray.length > 0){
+      firstUser = usersArray[0];
+      return firstUser.Nachname == lastName;
+    }else{
+      return false;
+    }
   } catch (error) {
     return error;
   } finally {
@@ -364,4 +393,5 @@ module.exports = {
   createNewCustomer,
   deleteCustomer,
   logIn,
+  getCustomer,
 };
