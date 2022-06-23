@@ -339,11 +339,16 @@ async function getCustomer(_id) {
   let connection;
   try {
     connection = await pool.getConnection();
-    //connection.beginTransaction();
-    let response = await connection.query(
+    connection.beginTransaction();
+    let usersArray = await connection.query(
       `SELECT * FROM Kunde WHERE Kunde_ID='${_id}'`
     );
-    return response;
+    if(usersArray.length > 0){
+      firstUser = usersArray[0];
+      return firstUser;
+    }else{
+      return false;
+    }
   } catch (error) {
     connection.rollback();
     return error.message;
