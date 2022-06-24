@@ -224,15 +224,13 @@ async function createNewContract(_contractInfo) {
     connection = await pool.getConnection();
     await connection.beginTransaction();
     let response = await connection.query(
-      `INSERT INTO Auftrag (Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
+      `INSERT INTO Auftrag (Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis, Zahlungsart) VALUES ('${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}', '${_contractInfo.payment}')`
     );
-    const tokens = await functions.getTokens();
-    const accessToken = tokens.access_token;
-    await functions.addContractToSherlock(accessToken, _contractInfo)
     await connection.commit();
     return 200;
   } catch (error) {
     connection.rollback();
+    console.log(error);
     return error;
   } finally {
     if (connection) {
