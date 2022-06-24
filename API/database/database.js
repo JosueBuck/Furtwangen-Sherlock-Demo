@@ -224,7 +224,7 @@ async function createNewContract(_contractInfo) {
     connection = await pool.getConnection();
     await connection.beginTransaction();
     let response = await connection.query(
-      `INSERT INTO Auftrag (Auftrag_ID, Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.contract_ID}', '${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
+      `INSERT INTO Auftrag (Name_Kunde, Kunde_ID, Fahrrad_ID, Datum_von, Datum_bis) VALUES ('${_contractInfo.name_customer}', '${_contractInfo.customer_ID}', '${_contractInfo.bike_ID}', '${_contractInfo.date_1}', '${_contractInfo.date_2}')`
     );
     const tokens = await functions.getTokens();
     const accessToken = tokens.access_token;
