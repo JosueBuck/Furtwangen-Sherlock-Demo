@@ -283,15 +283,16 @@ async function createNewCustomer(_customerInfo) {
     connection = await pool.getConnection();
     await connection.beginTransaction();
     let response = await connection.query(
-      `INSERT INTO Kunde (Kunde_ID, Nachname, Vorname, Anschrift, Mail, Phone, Geburtsdatum, Geschlecht) VALUES ('${_customerInfo.customer_ID}', '${_customerInfo.lastname}', '${_customerInfo.firstname}', '${_customerInfo.address}', '${_customerInfo.mail}', ${_customerInfo.phone}, '${_customerInfo.birthday}', '${_customerInfo.sex}')`
+      `INSERT INTO Kunde (Nachname, Vorname, Anschrift, Mail, Phone, Geburtsdatum, Geschlecht) VALUES ('${_customerInfo.lastname}', '${_customerInfo.firstname}', '${_customerInfo.address}', '${_customerInfo.mail}', ${_customerInfo.phone}, '${_customerInfo.birthday}', '${_customerInfo.sex}')`
     );
-    const tokens = await functions.getTokens();
-    const accessToken = tokens.access_token;
-    await functions.addUserToSherlock(accessToken, _customerInfo);
+    // const tokens = await functions.getTokens();
+    // const accessToken = tokens.access_token;
+    // await functions.addUserToSherlock(accessToken, _customerInfo);
     await connection.commit();
     return 200;
   } catch (error) {
     connection.rollback();
+    console.log(error);
     return error;
   } finally {
     if (connection) {
